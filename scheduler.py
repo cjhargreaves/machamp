@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 from typing import Dict, List
 
+import gpu
 from job import Job, JobStatus
 
 
@@ -15,8 +16,8 @@ class Scheduler:
         self._running = False
         self._worker_thread = None
 
-    def submit(self, command: str) -> Job:
-        job = Job(command=command)
+    def submit(self, command: str, vram_mb: int = 0) -> Job:
+        job = Job(command=command, vram_mb=vram_mb)
         with self.lock:
             self.queue.append(job)
             self.jobs[job.id] = job
@@ -43,16 +44,18 @@ class Scheduler:
 
     def _worker_loop(self) -> None:
         while self._running:
-            job = self._next_job()
+            job = self._next_eligible_job()
             if job:
                 self._run(job)
             else:
                 time.sleep(0.5)
 
-    def _next_job(self) -> Job | None:
+    def _next_eligible_job(self) -> Job | None:
+        available = gpu.free_vram_mb()
         with self.lock:
-            if self.queue:
-                return self.queue.pop(0)
+            for i, job in enumerate(self.queue):
+                if job.vram_mb <= available:
+                    return self.queue.pop(i)
         return None
 
     def _run(self, job: Job) -> None:

@@ -15,6 +15,7 @@ class JobStatus(Enum):
 @dataclass
 class Job:
     command: str
+    vram_mb: int = 0
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     status: JobStatus = JobStatus.PENDING
     created_at: datetime = field(default_factory=datetime.now)

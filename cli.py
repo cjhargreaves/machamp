@@ -26,8 +26,10 @@ def main():
         elif line == "status":
             scheduler.status()
         elif line.startswith("submit "):
-            command = line[len("submit "):]
-            scheduler.submit(command)
+            parts = line[len("submit "):].split("--vram ", 1)
+            command = parts[0].strip()
+            vram_mb = int(parts[1].strip()) if len(parts) > 1 else 0
+            scheduler.submit(command, vram_mb=vram_mb)
         else:
             print("Unknown command.")
 
