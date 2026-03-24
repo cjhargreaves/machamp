@@ -1,0 +1,2 @@
+nvidia-ml-py==13.595.45
+pynvml==13.0.1
